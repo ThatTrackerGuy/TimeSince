@@ -153,6 +153,7 @@ function breakTracker(id) {
 }
 
 function deleteTracker(id) {
+  if (!confirm("Are you sure you want to delete this tracker?")) return;
   trackerList = trackerList.filter(t => t.id !== id);
   saveTrackers();
   renderTrackers();
@@ -164,7 +165,6 @@ function formatTime(diff) {
   const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
   const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
   const seconds = totalSeconds % 60;
-
   return `${String(days).padStart(2,'0')}:${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
 }
 
@@ -194,13 +194,23 @@ function formatSince(startDate, measurement) {
       const m2 = start.getMonth();
       const d1 = now.getDate();
       const d2 = start.getDate();
-      if (m1 < m2 || (m1 === m2 && d1 < d2)) {
-        years -= 1;
-      }
+      if (m1 < m2 || (m1 === m2 && d1 < d2)) years -= 1;
       return years + " Years";
     }
     default:
       return "";
+  }
+}
+
+function toggleContent(id) {
+  const content = document.getElementById(`content-${id}`);
+  const btn = document.getElementById(`toggle-${id}`);
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    btn.textContent = '▾';
+  } else {
+    content.style.display = 'none';
+    btn.textContent = '▸';
   }
 }
 
@@ -214,12 +224,15 @@ function renderTrackers() {
 
     div.innerHTML = `
       <div class="title-bar">
-        <div class="title-bar-text">${tracker.measurement} since ${tracker.name}</div>
+        <div>
+          <button id="toggle-${tracker.id}" onclick="toggleContent(${tracker.id})" style="margin-right: 5px;">▾</button>
+          <span class="title-bar-text">${tracker.measurement} since ${tracker.name}</span>
+        </div>
         <div class="title-bar-controls">
           <button onclick="deleteTracker(${tracker.id})">×</button>
         </div>
       </div>
-      <div class="tracker">
+      <div id="content-${tracker.id}" class="tracker">
         <div><b>Current:</b> <span id="time-${tracker.id}">${formatSince(tracker.startDate, tracker.measurement)}</span></div>
         <div><b>Breaks:</b> ${tracker.breaks}</div>
         <button onclick="breakTracker(${tracker.id})">BREAK</button>
