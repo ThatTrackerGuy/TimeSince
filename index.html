@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Measurement Tracker</title>
+<link href="https://fonts.cdnfonts.com/css/ms-sans-serif" rel="stylesheet">
+<style>
+  body {
+    background-color: #008080;
+    font-family: 'MS Sans Serif', sans-serif;
+    margin: 0;
+    padding: 20px;
+    color: black;
+  }
+  .window {
+    background-color: #c0c0c0;
+    border: 2px solid white;
+    border-right-color: gray;
+    border-bottom-color: gray;
+    box-shadow: inset -2px -2px gray, inset 2px 2px white;
+    padding: 10px;
+    margin-bottom: 20px;
+    width: 300px;
+  }
+  .title-bar {
+    background: linear-gradient(to right, navy, #000080);
+    color: white;
+    padding: 2px 5px;
+    font-weight: bold;
+    margin: -10px -10px 10px -10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .title-bar-text {
+    font-size: 14px;
+  }
+  .title-bar-controls button {
+    background-color: silver;
+    border: 2px outset white;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin-left: 2px;
+  }
+  button {
+    background-color: silver;
+    border: 2px outset white;
+    padding: 2px 8px;
+    margin: 2px;
+    cursor: pointer;
+  }
+  input, select {
+    background-color: white;
+    border: 2px inset gray;
+    padding: 2px;
+    margin: 2px;
+  }
+  .tracker {
+    background-color: #e0e0e0;
+    padding: 5px;
+    margin: 5px 0;
+    border: 2px groove gray;
+  }
+</style>
+</head>
+<body>
+
+<h1 style="color:white;">🖥️ Measurement Tracker</h1>
+
+<div class="window">
+  <div class="title-bar">
+    <div class="title-bar-text">New Tracker</div>
+  </div>
+  <div>
+    <label>Measurement: 
+      <select id="measurement">
+        <option value="Time">Time (DD:HH:MM:SS)</option>
+        <option value="Seconds">Seconds</option>
+        <option value="Minutes">Minutes</option>
+        <option value="Hours">Hours</option>
+        <option value="Days" selected>Days</option>
+        <option value="Months">Months</option>
+        <option value="Years">Years</option>
+      </select>
+    </label><br>
+    <label>Tracker Name: <input type="text" id="trackerName" placeholder="e.g., Marriage"></label><br>
+    <button onclick="addTracker()">Add Tracker</button>
+  </div>
+</div>
+
+<div id="trackers"></div>
+
+<script>
+let trackerList = [];
+
+function addTracker() {
+  const measurement = document.getElementById('measurement').value;
+  const name = document.getElementById('trackerName').value.trim();
+  if (!name) {
+    alert("Please enter a tracker name.");
+    return;
+  }
+
+  const tracker = {
+    id: Date.now(),
+    measurement,
+    name,
+    startDate: new Date(),
+    breaks: 0
+  };
+  trackerList.push(tracker);
+  renderTrackers();
+}
+
+function breakTracker(id) {
+  const tracker = trackerList.find(t => t.id === id);
+  if (tracker) {
+    tracker.breaks += 1;
+    tracker.startDate = new Date();
+    renderTrackers();
+  }
+}
+
+function deleteTracker(id) {
+  trackerList = trackerList.filter(t => t.id !== id);
+  renderTrackers();
+}
+
+function formatTime(diff) {
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / (60 * 60 * 24));
+  const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(days).padStart(2,'0')}:${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+}
+
+function formatSince(startDate, measurement) {
+  const now = new Date();
+  const diff = now - startDate;
+
+  switch (measurement) {
+    case 'Time':
+      return formatTime(diff);
+    case 'Seconds':
+      return Math.floor(diff / 1000) + " Seconds";
+    case 'Minutes':
+      return Math.floor(diff / (1000 * 60)) + " Minutes";
+    case 'Hours':
+      return Math.floor(diff / (1000 * 60 * 60)) + " Hours";
+    case 'Days':
+      return Math.floor(diff / (1000 * 60 * 60 * 24)) + " Days";
+    case 'Months': {
+      const start = new Date(startDate);
+      const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+      return months + " Months";
+    }
+    case 'Years': {
+      const years = now.getFullYear() - startDate.getFullYear();
+      const m1 = now.getMonth();
+      const m2 = startDate.getMonth();
+      const d1 = now.getDate();
+      const d2 = startDate.getDate();
+      if (m1 < m2 || (m1 === m2 && d1 < d2)) {
+        return (years - 1) + " Years";
+      }
+      return years + " Years";
+    }
+    default:
+      return "";
+  }
+}
+
+function renderTrackers() {
+  const container = document.getElementById('trackers');
+  container.innerHTML = '';
+
+  trackerList.forEach(tracker => {
+    const div = document.createElement('div');
+    div.className = 'window';
+
+    div.innerHTML = `
+      <div class="title-bar">
+        <div class="title-bar-text">${tracker.measurement} since ${tracker.name}</div>
+        <div class="title-bar-controls">
+          <button onclick="deleteTracker(${tracker.id})">x</button>
+        </div>
+      </div>
+      <div class="tracker">
+        <div><b>Current:</b> <span id="time-${tracker.id}">${formatSince(tracker.startDate, tracker.measurement)}</span></div>
+        <div><b>Breaks:</b> ${tracker.breaks}</div>
+        <button onclick="breakTracker(${tracker.id})">BREAK</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+setInterval(() => {
+  trackerList.forEach(tracker => {
+    const timeSpan = document.getElementById(`time-${tracker.id}`);
+    if (timeSpan) {
+      timeSpan.innerText = formatSince(tracker.startDate, tracker.measurement);
+    }
+  });
+}, 1000);
+</script>
+
+</body>
+</html>
