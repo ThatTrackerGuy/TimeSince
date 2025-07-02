@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Measurement Tracker</title>
-<link href="https://fonts.cdnfonts.com/css/ms-sans-serif" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
   /* Halftone background */
   body {
     background-color: #008080;
     background-image: radial-gradient(#004d4d 1px, transparent 1px);
     background-size: 8px 8px;
-    font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+    font-family: 'VT323', monospace;
     margin: 0;
     padding: 20px;
     color: black;
+    font-size: 16px;
   }
 
   /* Window styling */
@@ -39,7 +40,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13px;
+    font-size: 16px;
   }
 
   .title-bar-controls button {
@@ -60,7 +61,6 @@
     margin: 2px;
     cursor: pointer;
     font-family: inherit;
-    font-size: 13px;
   }
 
   button:active {
@@ -74,7 +74,6 @@
     padding: 2px;
     margin: 2px;
     font-family: inherit;
-    font-size: 13px;
   }
 
   /* Tracker box */
@@ -117,7 +116,11 @@
 <div id="trackers"></div>
 
 <script>
-let trackerList = [];
+let trackerList = JSON.parse(localStorage.getItem('trackers')) || [];
+
+function saveTrackers() {
+  localStorage.setItem('trackers', JSON.stringify(trackerList));
+}
 
 function addTracker() {
   const measurement = document.getElementById('measurement').value;
@@ -131,10 +134,11 @@ function addTracker() {
     id: Date.now(),
     measurement,
     name,
-    startDate: new Date(),
+    startDate: new Date().toISOString(),
     breaks: 0
   };
   trackerList.push(tracker);
+  saveTrackers();
   renderTrackers();
 }
 
@@ -142,13 +146,15 @@ function breakTracker(id) {
   const tracker = trackerList.find(t => t.id === id);
   if (tracker) {
     tracker.breaks += 1;
-    tracker.startDate = new Date();
+    tracker.startDate = new Date().toISOString();
+    saveTrackers();
     renderTrackers();
   }
 }
 
 function deleteTracker(id) {
   trackerList = trackerList.filter(t => t.id !== id);
+  saveTrackers();
   renderTrackers();
 }
 
@@ -164,7 +170,8 @@ function formatTime(diff) {
 
 function formatSince(startDate, measurement) {
   const now = new Date();
-  const diff = now - startDate;
+  const start = new Date(startDate);
+  const diff = now - start;
 
   switch (measurement) {
     case 'Time':
@@ -178,18 +185,17 @@ function formatSince(startDate, measurement) {
     case 'Days':
       return Math.floor(diff / (1000 * 60 * 60 * 24)) + " Days";
     case 'Months': {
-      const start = new Date(startDate);
       const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
       return months + " Months";
     }
     case 'Years': {
-      const years = now.getFullYear() - startDate.getFullYear();
+      let years = now.getFullYear() - start.getFullYear();
       const m1 = now.getMonth();
-      const m2 = startDate.getMonth();
+      const m2 = start.getMonth();
       const d1 = now.getDate();
-      const d2 = startDate.getDate();
+      const d2 = start.getDate();
       if (m1 < m2 || (m1 === m2 && d1 < d2)) {
-        return (years - 1) + " Years";
+        years -= 1;
       }
       return years + " Years";
     }
@@ -231,6 +237,8 @@ setInterval(() => {
     }
   });
 }, 1000);
+
+renderTrackers();
 </script>
 
 </body>
