@@ -6,13 +6,18 @@
 <title>Measurement Tracker</title>
 <link href="https://fonts.cdnfonts.com/css/ms-sans-serif" rel="stylesheet">
 <style>
+  /* Halftone background */
   body {
     background-color: #008080;
-    font-family: 'MS Sans Serif', sans-serif;
+    background-image: radial-gradient(#004d4d 1px, transparent 1px);
+    background-size: 8px 8px;
+    font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
     margin: 0;
     padding: 20px;
     color: black;
   }
+
+  /* Window styling */
   .window {
     background-color: #c0c0c0;
     border: 2px solid white;
@@ -23,6 +28,8 @@
     margin-bottom: 20px;
     width: 300px;
   }
+
+  /* Title bar */
   .title-bar {
     background: linear-gradient(to right, navy, #000080);
     color: white;
@@ -32,10 +39,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 13px;
   }
-  .title-bar-text {
-    font-size: 14px;
-  }
+
   .title-bar-controls button {
     background-color: silver;
     border: 2px outset white;
@@ -43,20 +49,35 @@
     height: 16px;
     padding: 0;
     margin-left: 2px;
+    font-weight: bold;
   }
+
+  /* Buttons */
   button {
     background-color: silver;
     border: 2px outset white;
     padding: 2px 8px;
     margin: 2px;
     cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
   }
+
+  button:active {
+    border: 2px inset gray;
+  }
+
+  /* Inputs */
   input, select {
     background-color: white;
     border: 2px inset gray;
     padding: 2px;
     margin: 2px;
+    font-family: inherit;
+    font-size: 13px;
   }
+
+  /* Tracker box */
   .tracker {
     background-color: #e0e0e0;
     padding: 5px;
@@ -72,6 +93,9 @@
 <div class="window">
   <div class="title-bar">
     <div class="title-bar-text">New Tracker</div>
+    <div class="title-bar-controls">
+      <button onclick="window.location.reload()">×</button>
+    </div>
   </div>
   <div>
     <label>Measurement: 
@@ -186,7 +210,7 @@ function renderTrackers() {
       <div class="title-bar">
         <div class="title-bar-text">${tracker.measurement} since ${tracker.name}</div>
         <div class="title-bar-controls">
-          <button onclick="deleteTracker(${tracker.id})">x</button>
+          <button onclick="deleteTracker(${tracker.id})">×</button>
         </div>
       </div>
       <div class="tracker">
